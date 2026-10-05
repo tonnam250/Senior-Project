@@ -5,8 +5,8 @@ import tempfile
 from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.parsing.parse import extract_pdf
-from db import save_parsed
+from parsing.parse import parse_pdf
+from database import save_parsed
 
 app = FastAPI()
 
@@ -25,7 +25,7 @@ def parse_pdf_end(file: UploadFile):
         temp_path = tmp.name
 
     try:
-        pages = extract_pdf(temp_path)
+        pages = parse_pdf(temp_path)
     finally:
         os.remove(temp_path)
 

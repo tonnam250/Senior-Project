@@ -2,11 +2,12 @@ import os
 import shutil
 import tempfile
 
-from fastapi import FastAPI, UploadFile
+from fastapi import FastAPI, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from parsing.parse import parse_pdf
-from database import save_parsed
+from database import save_parsed, get_pages, save_chunks
+from chunking.chunker import chunk_pages
 
 app = FastAPI()
 
@@ -32,3 +33,12 @@ def parse_pdf_end(file: UploadFile):
     document_id = save_parsed(file.filename, pages)
 
     return {"document_id": document_id, "pages": pages}
+
+@app.post("/documents/{document_id}/chunk")
+def chunk_document(document_id: int):
+    pages = get_pages(document_id)
+    if not pages:
+        raise HTTPException(status_code=404, detail="ไม่พบเอกสารหรือยังไม่มีหน้า")
+    chunks = chunk_pages(pages)
+    save_chunks(document_id, chunks)
+    return {"document_id": document_id, "chunk_count": len(chunks)}

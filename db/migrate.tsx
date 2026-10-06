@@ -18,6 +18,16 @@ CREATE TABLE IF NOT EXISTS pages (
   text         TEXT NOT NULL,
   UNIQUE (document_id, page_number)
 );
+
+CREATE TABLE IF NOT EXISTS chunks (
+  id           SERIAL PRIMARY KEY,
+  document_id  INT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+  chunk_index  INT NOT NULL,
+  text         TEXT NOT NULL,
+  page_start   INT NOT NULL,
+  page_end     INT NOT NULL,
+  UNIQUE (document_id, chunk_index)
+);
 `;
 
 async function migrate() {

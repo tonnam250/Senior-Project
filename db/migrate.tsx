@@ -3,6 +3,24 @@ import path from 'path';
 import pool from './db';
 
 const sql = `
+CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE IF NOT EXISTS chunks (
+  id           SERIAL PRIMARY KEY,
+  document_id  INT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+  chunk_index  INT NOT NULL,
+  text         TEXT NOT NULL,
+  page_start   INT NOT NULL,
+  page_end     INT NOT NULL,
+  UNIQUE (document_id, chunk_index)
+);
+
+CREATE TABLE IF NOT EXISTS chunk_embeddings (
+  chunk_id   INT PRIMARY KEY REFERENCES chunks(id) ON DELETE CASCADE,
+  model      TEXT NOT NULL,
+  embedding  vector(1024) NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS documents (
   id          SERIAL PRIMARY KEY,
   filename    TEXT NOT NULL,
@@ -17,16 +35,6 @@ CREATE TABLE IF NOT EXISTS pages (
   page_number  INT NOT NULL,
   text         TEXT NOT NULL,
   UNIQUE (document_id, page_number)
-);
-
-CREATE TABLE IF NOT EXISTS chunks (
-  id           SERIAL PRIMARY KEY,
-  document_id  INT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
-  chunk_index  INT NOT NULL,
-  text         TEXT NOT NULL,
-  page_start   INT NOT NULL,
-  page_end     INT NOT NULL,
-  UNIQUE (document_id, chunk_index)
 );
 `;
 

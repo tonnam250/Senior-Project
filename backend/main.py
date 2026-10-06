@@ -6,8 +6,9 @@ from fastapi import FastAPI, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from parsing.parse import parse_pdf
-from database import save_parsed, get_pages, save_chunks
+from database import save_parsed, get_pages, save_chunks, get_chunks, save_embeddings
 from chunking.chunker import chunk_pages
+from embedding.embedder import embed_texts, MODEL_NAME
 
 app = FastAPI()
 
@@ -42,3 +43,12 @@ def chunk_document(document_id: int):
     chunks = chunk_pages(pages)
     save_chunks(document_id, chunks)
     return {"document_id": document_id, "chunk_count": len(chunks)}
+
+@app.post("/documents/{document_id}/embed")
+def embed_document(document_id: int):
+    chunks = get_chunks(document_id)
+    if not chunks:
+        raise HTTPException(status_code=404, detail="ยังไม่มี chunk ให้ทำ chunking ก่อน")
+    vectors = embed_texts([c["text"] for c in chunks])
+    save_embeddings([c["id"] for c in chunks], vectors, MODEL_NAME)
+    return {"document_id": document_id, "embedded": len(vectors), "dimension": len(vectors[0])}

@@ -41,3 +41,23 @@ def save_parsed(filename: str, pages: list[dict]) -> int:
                 [(doc_id, p["page_number"], p["text"]) for p in pages],
             )
         return doc_id
+
+def get_chunks(document_id: int) -> list[dict]:
+    with psycopg.connect(os.environ["POSTGRES_URL"]) as conn:
+        rows = conn.execute(
+            "SELECT id, text FROM chunks WHERE document_id = %s ORDER BY chunk_index",
+            (document_id,),
+        ).fetchall()
+    return [{"id": r[0], "text": r[1]} for r in rows]
+
+
+def save_embeddings(chunk_ids: list[int], vectors: list[list[float]], model: str) -> None:
+    with psycopg.connect(os.environ["POSTGRES_URL"]) as conn:
+        with conn.cursor() as cur:
+            cur.executemany(
+                "INSERT INTO chunk_embeddings (chunk_id, model, embedding) "
+                "VALUES (%s, %s, %s::vector) "
+                "ON CONFLICT (chunk_id) DO UPDATE "
+                "SET model = EXCLUDED.model, embedding = EXCLUDED.embedding",
+                [(cid, model, str(vec)) for cid, vec in zip(chunk_ids, vectors)],
+            )

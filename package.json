@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db_migrate": "npx tsx db/migrate.tsx"
+    "migrate": "npx tsx db/migrate.tsx"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

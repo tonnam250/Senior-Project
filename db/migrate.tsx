@@ -36,6 +36,23 @@ CREATE TABLE IF NOT EXISTS pages (
   text         TEXT NOT NULL,
   UNIQUE (document_id, page_number)
 );
+
+CREATE TABLE IF NOT EXISTS summaries (
+  id              SERIAL PRIMARY KEY,
+  document_id     INT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+  level           INT NOT NULL,
+  node_index      INT NOT NULL,
+  text            TEXT NOT NULL,
+  page_start      INT NOT NULL,
+  page_end        INT NOT NULL,
+  chunk_id        INT REFERENCES chunks(id) ON DELETE CASCADE,
+  parent_id       INT REFERENCES summaries(id),
+  model           TEXT NOT NULL,
+  prompt_version  TEXT NOT NULL,
+  elapsed_ms      INT,
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (document_id, level, node_index)
+);
 `;
 
 async function migrate() {

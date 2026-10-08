@@ -4,7 +4,7 @@ from chunking.chunker import chunk_pages
 from embedding.embedder import embed_texts, MODEL_NAME
 from summarization.summarizer import summarize_document
 from database import (
-    get_pages, save_chunks, get_chunks, save_embeddings, set_status,
+    get_pages, save_chunks, get_chunk,get_chunks, save_embeddings, set_status,
 )
 
 

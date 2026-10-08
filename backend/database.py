@@ -16,7 +16,6 @@ def get_pages(document_id: int) -> list[dict]:
 def save_chunks(document_id: int, chunks: list[dict]) -> None:
     with psycopg.connect(os.environ["POSTGRES_URL"]) as conn:
         with conn.cursor() as cur:
-            # ลบของเก่าก่อน เพื่อให้สั่ง chunk ซ้ำได้โดยไม่ซ้อนกัน
             cur.execute("DELETE FROM summaries WHERE document_id = %s", (document_id,))
             cur.execute("DELETE FROM chunks WHERE document_id = %s", (document_id,))
             cur.executemany(
@@ -42,17 +41,47 @@ def save_parsed(filename: str, pages: list[dict]) -> int:
                 [(doc_id, p["page_number"], p["text"]) for p in pages],
             )
         return doc_id
+    
+# Chunk เดียว
+def get_chunk(document_id: int, chunk_id: int) -> dict | None:
+    with psycopg.connect(os.environ["POSTGRES_URL"]) as conn:
+        row = conn.execute(
+            "SELECT id, chunk_index, text, page_start, page_end "
+            "FROM chunks WHERE id = %s AND document_id = %s",
+            (chunk_id, document_id),
+        ).fetchone()
+    if not row:
+        return None
+    return {
+        "id": row[0],
+        "chunk_index": row[1],
+        "text": row[2],
+        "page_start": row[3],
+        "page_end": row[4],
+    }
 
+# Chunk ทั้งหมด
 def get_chunks(document_id: int) -> list[dict]:
     with psycopg.connect(os.environ["POSTGRES_URL"]) as conn:
         rows = conn.execute(
-            "SELECT id, text, page_start, page_end, chunk_index "
-            "FROM chunks WHERE document_id = %s ORDER BY chunk_index",
+            """
+            SELECT id, chunk_index, text, page_start, page_end
+            FROM chunks
+            WHERE document_id = %s
+            ORDER BY chunk_index
+            """,
             (document_id,),
         ).fetchall()
+
     return [
-        {"id": r[0], "text": r[1], "page_start": r[2], "page_end": r[3], "chunk_index": r[4]}
-        for r in rows
+        {
+            "id": row[0],
+            "chunk_index": row[1],
+            "text": row[2],
+            "page_start": row[3],
+            "page_end": row[4],
+        }
+        for row in rows
     ]
 
 

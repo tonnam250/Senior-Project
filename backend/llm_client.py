@@ -2,7 +2,7 @@ import ollama
 
 MODEL = "qwen2.5:7b"
 EMBED_MODEL = "bge-m3"
-NUM_CTX = 8192
+NUM_CTX = 8200
 
 
 def generate(prompt: str) -> str:

@@ -6,7 +6,7 @@ from fastapi import FastAPI, UploadFile, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 
 from parsing.parse import parse_pdf
-from database import save_parsed, get_pages, save_chunks, get_chunks, save_embeddings, get_summaries, get_status, set_status, get_document_info
+from database import save_parsed, get_pages, save_chunks, get_chunk,get_chunks, save_embeddings, get_summaries, get_status, set_status, get_document_info
 from chunking.chunker import chunk_pages
 from embedding.embedder import embed_texts, MODEL_NAME
 from summarization.summarizer import summarize_document
@@ -103,3 +103,22 @@ def document_status(document_id: int):
     if info is None:
         raise HTTPException(status_code=404, detail="ไม่พบเอกสาร")
     return info
+
+@app.get("/documents/{document_id}/chunks/{chunk_id}")
+def read_chunk(document_id: int, chunk_id: int):
+    # chunk = get_chunk(document_id, chunk_id)
+    # if chunk is None:
+    #     raise HTTPException(status_code=404, detail="ไม่พบ chunk ในเอกสารนี้")
+    # return chunk
+    print("ROUTE HIT:", document_id, chunk_id)
+
+    chunk = get_chunk(document_id, chunk_id)
+    print("CHUNK RESULT:", chunk)
+
+    if chunk is None:
+        raise HTTPException(
+            status_code=404,
+            detail="ไม่พบ chunk ในเอกสารนี้"
+        )
+
+    return chunk

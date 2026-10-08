@@ -4,7 +4,7 @@ import traceback
 
 from llm_client import generate, MODEL
 from database import (
-    get_chunks, clear_summaries, insert_summary, set_parent, set_status,
+    get_chunk,get_chunks, clear_summaries, insert_summary, set_parent, set_status,
 )
 
 PROMPT_VERSION = "v1"

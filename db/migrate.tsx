@@ -5,6 +5,15 @@ import pool from './db';
 const sql = `
 CREATE EXTENSION IF NOT EXISTS vector;
 
+
+CREATE TABLE IF NOT EXISTS documents (
+  id          SERIAL PRIMARY KEY,
+  filename    TEXT NOT NULL,
+  page_count  INT,
+  status      TEXT NOT NULL DEFAULT 'pending',
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS chunks (
   id           SERIAL PRIMARY KEY,
   document_id  INT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
@@ -19,14 +28,6 @@ CREATE TABLE IF NOT EXISTS chunk_embeddings (
   chunk_id   INT PRIMARY KEY REFERENCES chunks(id) ON DELETE CASCADE,
   model      TEXT NOT NULL,
   embedding  vector(1024) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS documents (
-  id          SERIAL PRIMARY KEY,
-  filename    TEXT NOT NULL,
-  page_count  INT,
-  status      TEXT NOT NULL DEFAULT 'pending',
-  created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS pages (

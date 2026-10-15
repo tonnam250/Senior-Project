@@ -159,3 +159,28 @@ def get_document_info(document_id: int) -> dict | None:
         "page_count": row[2],
         "chunk_count": row[3],
     }
+
+def search_chunks(query_vector: list[float], limit: int = 5) -> list[dict]:
+    with psycopg.connect(os.environ["POSTGRES_URL"]) as conn:
+        rows = conn.execute(
+            "SELECT c.id, c.document_id, d.filename, c.page_start, c.page_end, c.text, "
+            "       1 - (e.embedding <=> %(v)s::vector) AS similarity "
+            "FROM chunk_embeddings e "
+            "JOIN chunks c ON c.id = e.chunk_id "
+            "JOIN documents d ON d.id = c.document_id "
+            "ORDER BY e.embedding <=> %(v)s::vector "
+            "LIMIT %(n)s",
+            {"v": str(query_vector), "n": limit},
+        ).fetchall()
+    return [
+        {
+            "chunk_id": r[0],
+            "document_id": r[1],
+            "filename": r[2],
+            "page_start": r[3],
+            "page_end": r[4],
+            "text": r[5],
+            "similarity": float(r[6]),
+        }
+        for r in rows
+    ]
